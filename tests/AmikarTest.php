@@ -57,9 +57,6 @@ class AmikarTest extends \PHPUnit_Framework_TestCase
 
     public function testGuzzleHttpClientHandlerCanBeForced()
     {
-        $config = array_merge($this->config, [
-            'http_client_handler' => 'guzzle'
-        ]);
         $api = new Amikar($config);
         $this->assertInstanceOf(AmikarGuzzleHttpHTTPClient::class, $api->getClient()->getHttpClientHandler()
         );
