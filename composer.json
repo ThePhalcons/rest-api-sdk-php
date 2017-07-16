@@ -1,0 +1,31 @@
+{
+  "name": "amikar/rest-api-sdk-php",
+  "description": "Amikar Rest API SDK PHP",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "El Mehdi Mouddene",
+      "email": "elmehdi.mouddene@amikar.com"
+    }
+  ],
+  "autoload": {
+    "psr-0": {
+      "Amikar": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Amikar\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": "^5.4|^7.0",
+    "guzzlehttp/guzzle": "6.3.0"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.x-dev"
+    }
+  }
+}
