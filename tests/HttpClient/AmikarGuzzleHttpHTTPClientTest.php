@@ -29,6 +29,7 @@ namespace Amikar\Tests\HttpClient;
 use Amikar\Amikar;
 use Amikar\Http\AmikarRawResponse;
 use Amikar\HttpClient\AmikarGuzzleHttpHTTPClient;
+use GuzzleHttp\Client;
 
 class AmikarGuzzleHttpHTTPClientTest  extends \PhpUnit_Framework_TestCase
 {
@@ -40,7 +41,8 @@ class AmikarGuzzleHttpHTTPClientTest  extends \PhpUnit_Framework_TestCase
             [
                 'client_id' => 'amikar-sdk-client',
                 'client_secret' => 'secret',
-                'base_uri' => 'http://localhost:8081/api/v1.0/'
+                'base_uri' => 'http://localhost:8081/api/v1.0/',
+                'version' => 'v1.0',
             ]
         );
 
@@ -66,5 +68,27 @@ class AmikarGuzzleHttpHTTPClientTest  extends \PhpUnit_Framework_TestCase
         $this->assertArrayHasKey('scope', $token);
         $this->assertTrue($token['scope'] == "two_legged_scope");
 
+    }
+    public function testThreeLeggedAuthenticationWithValidCrendentials(){
+
+        $body = http_build_query([
+            'grant_type' => 'password',
+            'scope' => 'three_legged_scope',
+            'username' => 'mouddene@gmail.com',
+            'password' => 'yagami'
+        ], null, "&");
+
+        $headers = ['Content-Type' => 'application/x-www-form-urlencoded'];
+        /** @var AmikarRawResponse $rawResp */
+        $rawResp = $this->client->send('oauth/token','POST', $body, $headers, 0);
+        $access_token = $rawResp->getBodyContentsAsArray()['access_token'];
+
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . $access_token,
+        ];
+
+        $rawResp = $this->client->send('/user/me','GET', '', $headers,20000);
+        var_dump($rawResp->getBodyContentsAsArray()['authorities']);
     }
 }

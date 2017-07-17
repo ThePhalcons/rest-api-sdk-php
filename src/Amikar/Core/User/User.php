@@ -110,4 +110,8 @@ class User
     {
         $this->expired = $expired;
     }
+
+    public static function get($userId){
+
+    }
 }

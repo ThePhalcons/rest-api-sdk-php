@@ -58,7 +58,7 @@ class Amikar
     /**
      * @const string the default scheme of the api.
      */
-    const DEFAULT_API_SCHEME = 'https';
+    const DEFAULT_API_SCHEME = 'http';
     /**
      * @const string The hostname of the api.
      */
