@@ -47,14 +47,16 @@ class AmikarClientTest extends \PhpUnit_Framework_TestCase
     /** @var  AmikarClient */
     public $client;
 
+
+
     protected function setUp()
     {
-        $this->app = new AmikarApp('amikar_client_id', 'amikar_client_secret');
+        $this->app = new AmikarApp('amikar-sdk-client', 'secret');
         $this->client = new AmikarClient([
-            'client_id' => 'amikar_client_id',
-            'client_secret' => 'amikar_client_secret',
+            'client_id' => 'amikar-sdk-client',
+            'client_secret' => 'secret',
             'version'=>'v1',
-            'base_url' => 'http://localhost:8081/{version}'
+            'base_uri' => 'http://localhost:8081/api/v1.0/'
         ]);
     }
 
@@ -66,10 +68,22 @@ class AmikarClientTest extends \PhpUnit_Framework_TestCase
 
     public function testAAmikarRequestEntityCanBeUsedToSendARequestToApi()
     {
-        $request = new AmikarRequest($this->app, 'token', 'GET', '/foo');
+        $options = ['scope' => 'two_legged_scope', 'grant_type' => 'client_credentials'];
+        $oauthReq = new AmikarRequest($this->app, null, 'POST', '/oauth/token', $options);
+        $oauthResp = $this->client->sendRequest($oauthReq);
+        var_dump($oauthResp);
+        $token = $oauthResp->getBodyContentsAsArray();
+        $this->assertArrayHasKey('access_token', $token);
+        $this->assertArrayHasKey('expires_in', $token);
+        $this->assertArrayHasKey('scope', $token);
+        $this->assertTrue($token['scope'] == "two_legged_scope");
+
+        $request = new AmikarRequest($this->app, $token['access_token'], 'GET', '/user/8/public-profile');
         $response = $this->client->sendRequest($request);
         $this->assertInstanceOf(AmikarResponse::class , $response);
         $this->assertEquals(200, $response->getHttpStatusCode());
         $this->assertEquals('{"data":[{"id":"123","name":"Foo"},{"id":"1337","name":"Bar"}]}', $response->getBody());
     }
+
+
 }

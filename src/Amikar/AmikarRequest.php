@@ -3,6 +3,7 @@
 namespace Amikar;
 
 use Amikar\Exception\AmikarSDKException;
+use Amikar\Http\RequestBodyJsonEncoded;
 use Amikar\Http\RequestBodyUrlEncoded;
 use Amikar\Http\RequestBodyMultipart;
 
@@ -193,6 +194,20 @@ class AmikarRequest
     }
 
     /**
+     * adds header entry to the request headers
+     *
+     * @param $key
+     * @param $value
+     *
+     * @return $this
+     */
+    public function addHeader($key, $value)
+    {
+        $this->headers[$key] = $value;
+        return $this;
+    }
+
+    /**
      * @return array
      */
     public function getParams()
@@ -266,7 +281,7 @@ class AmikarRequest
         if (!$this->method) {
             throw new AmikarSDKException('HTTP method not specified.');
         }
-        if (!in_array($this->method, ['GET', 'POST', 'DELETE', 'PUT'])) {
+        if (!in_array($this->method, ['GET', 'POST', 'DELETE'])) {
             throw new AmikarSDKException('Invalid HTTP method specified.');
         }
     }

@@ -26,15 +26,17 @@
 namespace Amikar\Tests;
 
 use Amikar\Amikar;
+use Amikar\AmikarResponse;
 use Amikar\HttpClient\AmikarGuzzleHttpHTTPClient;
 
 class AmikarTest extends \PHPUnit_Framework_TestCase
 {
 
     protected $config = [
-        'client_id' => 'amikar-3legged',
-        'client_secret' => 'amikar-3legged-secret',
-        'version' => 'v1'
+        'client_id' => 'amikar-sdk-client',
+        'client_secret' => 'secret',
+        'version' => 'v1.0',
+        'scheme' => 'http',
     ];
 
     /** @expectedException \Amikar\Exception\AmikarSDKException */
@@ -61,5 +63,33 @@ class AmikarTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(AmikarGuzzleHttpHTTPClient::class, $api->getClient()->getHttpClientHandler()
         );
     }
+
+    public function testAmikarCanGetTwoLeggedAccessTokenFromApi()
+    {
+        $amikar = new Amikar($this->config);
+        $resp =$amikar->requestTwoLeggedAccessToken();
+        $this->assertInstanceOf(AmikarResponse::class , $resp);
+
+        $token = $resp->getBodyContentsAsArray();
+        $this->assertArrayHasKey('access_token', $token);
+
+        $this->assertEquals(200, $resp->getHttpStatusCode());
+
+    }
+
+    public function testAmikarCanGetThreeLeggedAccessTokenFromApi()
+    {
+        $amikar = new Amikar($this->config);
+        $data = ['username' => 'mouddene@gmail.com', 'password' => 'yagami'];
+        $resp =$amikar->getAccessTokenFromCredentials($data);
+        $this->assertInstanceOf(AmikarResponse::class , $resp);
+
+        $token = $resp->getBodyContentsAsArray();
+        $this->assertArrayHasKey('access_token', $token);
+
+        $this->assertEquals(200, $resp->getHttpStatusCode());
+
+    }
+
 
 }

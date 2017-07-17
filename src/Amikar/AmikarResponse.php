@@ -207,4 +207,22 @@ class AmikarResponse
     {
         $this->thrownException = AmikarResponseException::create($this);
     }
+
+    /**
+     * Return the body of the response as json.
+     *
+     * @return mixed
+     */
+    public function getBodyContentAsJson()
+    {
+        return json_decode($this->body);
+    }
+    /**
+     * Return the body of the response as array.
+     *
+     * @return mixed
+     */
+    public function getBodyContentsAsArray(){
+        return json_decode($this->body, true);
+    }
 }

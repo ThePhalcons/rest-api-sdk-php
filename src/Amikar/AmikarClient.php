@@ -80,6 +80,11 @@ class AmikarClient implements AmikarClientInterface
             $request->setHeaders([
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ]);
+
+        }
+
+        if($request->getAccessToken() != null && $request->getAccessToken() != ''){
+            $request->addHeader('Authorization', 'Bearer '. $request->getAccessToken());
         }
 
         return [
@@ -105,7 +110,7 @@ class AmikarClient implements AmikarClientInterface
 //        }
 
         list($url, $method, $headers, $body) = $this->prepareRequestMessage($request);
-
+        var_dump($url, $method, $headers, $body);
         // Since file uploads can take a while, we need to give more time for uploads
         $timeOut = static::DEFAULT_REQUEST_TIMEOUT;
         if ($request->containsFileUploads()) {
@@ -116,6 +121,7 @@ class AmikarClient implements AmikarClientInterface
         // Don't catch to allow it to bubble up.
         $rawResponse = $this->httpClientHandler->send($url, $method, $body, $headers, $timeOut);
 
+        var_dump($rawResponse);
         static::$requestCount++;
 
         $returnResponse = new AmikarResponse(
@@ -124,6 +130,7 @@ class AmikarClient implements AmikarClientInterface
             $rawResponse->getHttpResponseCode(),
             $rawResponse->getHeaders()
         );
+
         if ($returnResponse->isError()) {
             throw $returnResponse->getThrownException();
         }

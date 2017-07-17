@@ -3,6 +3,8 @@
 
 namespace Amikar\Http;
 
+use GuzzleHttp\Psr7\Stream;
+use Psr\Http\Message\StreamInterface;
 
 class AmikarRawResponse
 {
@@ -25,7 +27,7 @@ class AmikarRawResponse
      * Creates a new GraphRawResponse entity.
      *
      * @param string|array $headers        The headers as a raw string or array.
-     * @param string       $body           The raw response body.
+     * @param StreamInterface       $body           The raw response body.
      * @param int          $httpStatusCode The HTTP response code (if sending headers as parsed array).
      */
     public function __construct($headers, $body, $httpStatusCode = null)
@@ -38,7 +40,7 @@ class AmikarRawResponse
         } else {
             $this->setHeadersFromString($headers);
         }
-        $this->body = $body;
+        $this->body = $body->getContents();
     }
 
     /**
@@ -58,6 +60,32 @@ class AmikarRawResponse
     public function getBody()
     {
         return $this->body;
+    }
+    /**
+     * Return the body of the response.
+     *
+     * @return string
+     */
+    public function getBodyContents()
+    {
+        return $this->body;
+    }
+    /**
+     * Return the body of the response as json.
+     *
+     * @return mixed
+     */
+    public function getBodyContentAsJson()
+    {
+        return json_decode($this->body);
+    }
+    /**
+     * Return the body of the response as array.
+     *
+     * @return mixed
+     */
+    public function getBodyContentsAsArray(){
+        return json_decode($this->body, true);
     }
     /**
      * Return the HTTP response code.

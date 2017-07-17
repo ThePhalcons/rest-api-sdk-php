@@ -8,6 +8,7 @@ use Amikar\Http\AmikarRawResponse;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
+use GuzzleHttp\Psr7\Request;
 use Psr\Http\Message\ResponseInterface;
 
 class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
@@ -15,6 +16,9 @@ class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
 
     /** @var  Client */
     protected $guzzleClient;
+
+    /** @var array The default configuration which contains client id & client secret*/
+    private $config;
 
     /**
      * AmikarGuzzleHttpHTTPClient constructor.
@@ -32,20 +36,14 @@ class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
         if (!$config['client_secret']) {
             throw new AmikarSDKException('Required "client_secret" key not supplied in config."');
         }
-        if (!$config['base_url']) {
+
+        if (!$config['base_uri']) {
             throw new AmikarSDKException('Required "base_url" key not supplied in config."');
-        }
-        if (!$config['version']) {
-            throw new AmikarSDKException('Required "version" key not supplied in config."');
         }
 
         $this->guzzleClient = new Client([
-            'base_uri' => $config['base_url'],
-            'version' => $config['version'],
-            'defaults' => [
-                'auth' => [$config['client_id'], $config['client_secret']],
-                'headers' => ['source' => 'rest-api-sdk-php'],
-            ]
+            'base_uri' => $config['base_uri'],
+            'auth' => [$config['client_id'], $config['client_secret']],
         ]);
     }
 
@@ -53,7 +51,7 @@ class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
     /**
      * @param string $endpoint the endpoint to send the request to.
      * @param string $method the request method.
-     * @param string $body the body of the request
+     * @param string|array $body the body of the request
      * @param array $headers the request headers
      * @param int $timeout the timeout in seconds to the request
      * @return AmikarRawResponse
@@ -65,12 +63,17 @@ class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
             'headers' => $headers,
             'body' => $body,
             'timeout' => $timeout,
-            'connect_timeout' => 10
+            'connect_timeout' => 10,
         ];
-        $request = $this->guzzleClient->request($method, $endpoint, $options);
+
+        // convert the endpoint to a relative url @see{ https://tools.ietf.org/html/rfc3986#section-5.2}
+        if(substr($endpoint, 0, 1) == "/"){
+            $endpoint = "." . $endpoint;
+        }
 
         try {
-            $rawResponse = $this->guzzleClient->send($request);
+            $rawResponse = $this->guzzleClient->request($method, $endpoint, $options);
+            //var_dump($rawResponse->getBody()->getContents());
         } catch (RequestException $e) {
             $rawResponse = $e->getResponse();
             if ($e->getPrevious() instanceof TooManyRedirectsException || !$rawResponse instanceof ResponseInterface) {
