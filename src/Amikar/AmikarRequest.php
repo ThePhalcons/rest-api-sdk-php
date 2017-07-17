@@ -281,7 +281,7 @@ class AmikarRequest
         if (!$this->method) {
             throw new AmikarSDKException('HTTP method not specified.');
         }
-        if (!in_array($this->method, ['GET', 'POST', 'DELETE'])) {
+        if (!in_array($this->method, ['GET', 'POST', 'DELETE', 'PUT'])) {
             throw new AmikarSDKException('Invalid HTTP method specified.');
         }
     }

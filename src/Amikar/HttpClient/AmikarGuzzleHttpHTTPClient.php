@@ -9,6 +9,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
 use GuzzleHttp\Psr7\Request;
+use function GuzzleHttp\Psr7\str;
 use Psr\Http\Message\ResponseInterface;
 
 class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
@@ -16,8 +17,7 @@ class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
 
     /** @var  Client */
     protected $guzzleClient;
-
-    /** @var array The default configuration which contains client id & client secret*/
+    /** @var  array $config contains client config */
     private $config;
 
     /**
@@ -42,9 +42,10 @@ class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
         }
 
         $this->guzzleClient = new Client([
-            'base_uri' => $config['base_uri'],
-            'auth' => [$config['client_id'], $config['client_secret']],
+            'base_uri' => $config['base_uri']
         ]);
+
+        $this->config = $config;
     }
 
 
@@ -66,6 +67,11 @@ class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
             'connect_timeout' => 10,
         ];
 
+        // if Authorization header is not specified, set basic authentication
+        if(!array_key_exists('Authorization', $headers)){
+            $options = array_merge( $options, ['auth' => [$this->config['client_id'], $this->config['client_secret'] ]]);
+        }
+
         // convert the endpoint to a relative url @see{ https://tools.ietf.org/html/rfc3986#section-5.2}
         if(substr($endpoint, 0, 1) == "/"){
             $endpoint = "." . $endpoint;
@@ -73,13 +79,19 @@ class AmikarGuzzleHttpHTTPClient implements AmikarHTTPClientInterface
 
         try {
             $rawResponse = $this->guzzleClient->request($method, $endpoint, $options);
-            //var_dump($rawResponse->getBody()->getContents());
         } catch (RequestException $e) {
-            $rawResponse = $e->getResponse();
-            if ($e->getPrevious() instanceof TooManyRedirectsException || !$rawResponse instanceof ResponseInterface) {
-                throw new AmikarSDKException($e->getMessage(), $e->getCode());
+            echo str($e->getRequest());
+            if ($e->hasResponse()) {
+                echo str($e->getResponse());
             }
+            throw new AmikarSDKException($e->getMessage() . "\n" . str($e->getResponse()), $e->getCode());
         }
+//        } catch (RequestException $e) {
+//            $rawResponse = $e->getResponse();
+//            if ($e->getPrevious() instanceof TooManyRedirectsException || !$rawResponse instanceof ResponseInterface) {
+//                throw new AmikarSDKException($e->getMessage(), $e->getCode());
+//            }
+//        }
 
         $rawHeaders = $this->getHeadersAsString($rawResponse);
         $rawBody = $rawResponse->getBody();
