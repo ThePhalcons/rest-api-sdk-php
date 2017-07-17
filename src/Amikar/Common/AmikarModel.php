@@ -27,6 +27,8 @@
 namespace Amikar\Common;
 
 
+use Amikar\Validation\JsonValidator;
+
 class AmikarModel
 {
     /**
@@ -34,11 +36,44 @@ class AmikarModel
      * contains an array of this object
      *
      * @param mixed $data Array object or json string representation
-     * @return array
+     * @return AmikarModel|array
      */
     public static function getList($data)
     {
+        // Return Null if Null
+        if ($data === null) {
+            return null;
+        }
 
+        if (is_a($data, get_class(new \stdClass()))) {
+            //This means, root element is object
+            return new static(json_encode($data));
+        }
+
+        $list = array();
+
+        if (is_array($data)) {
+            $data = json_encode($data);
+        }
+
+        if (JsonValidator::validate($data)) {
+            // It is valid JSON
+            $decoded = json_decode($data);
+            if ($decoded === null) {
+                return $list;
+            }
+            if (is_array($decoded)) {
+                foreach ($decoded as $k => $v) {
+                    $list[] = self::getList($v);
+                }
+            }
+            if (is_a($decoded, get_class(new \stdClass()))) {
+                //This means, root element is object
+                $list[] = new static(json_encode($decoded));
+            }
+        }
+
+        return $list;
     }
 
     /**
